@@ -17,8 +17,10 @@ from django.contrib import admin
 from django.urls import path
 
 from .views import index
+from .ecommerce.views import hello
 
 urlpatterns = [
     path("", index, name="index"),
     path("admin/", admin.site.urls),
+    path("hello/", hello),
 ]
