@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "django-react-boilerplate"
+version = "0.1.0"
+description = ""
+authors = ["Gurkirat Singh <gurkirat.singh@students.iiit.ac.in>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^3.1.4"
+whitenoise = "^5.2.0"
+gunicorn = "^20.0.4"
+django-heroku = "^0.3.1"
+python-decouple = "^3.3"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^20.8b1", allow-prereleases = true}
+
+[tool.black]
+line-length = 90
+target-version = ['py37']
+quit = true
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.venv
+  | _build
+  | build
+  | dist
+  | [a-z_]+/migrations
+)/
+''']
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
