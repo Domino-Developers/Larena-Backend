@@ -30,6 +30,7 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG")
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = "ecommerce.User"
 
 # Application definition
 
