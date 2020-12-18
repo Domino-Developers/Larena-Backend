@@ -23,6 +23,11 @@ class Product(models.Model):
         return self.name
 
 
+class Photo(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    url = models.CharField(max_length=255)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)

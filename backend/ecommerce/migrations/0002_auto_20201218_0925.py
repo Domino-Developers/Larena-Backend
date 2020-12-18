@@ -20,7 +20,4 @@ class Migration(migrations.Migration):
                 ('type', models.IntegerField(choices=[(0, 'Jewellery'), (1, 'Cloth')])),
             ],
         ),
-        migrations.DeleteModel(
-            name='Hii',
-        ),
     ]
