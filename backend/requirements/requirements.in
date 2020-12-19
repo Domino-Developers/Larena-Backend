@@ -1,0 +1,4 @@
+django
+whitenoise[brotli]
+gunicorn
+django-heroku
