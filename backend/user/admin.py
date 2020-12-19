@@ -1,10 +1,9 @@
-from .models import Product
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin import TabularInline
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User, Address, Product
+from .models import User, Address
 
 
 class AddressInline(TabularInline):
@@ -43,4 +42,3 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Address)
-admin.site.register(Product)

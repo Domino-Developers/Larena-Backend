@@ -5,22 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
 
-
-class Product(models.Model):
-    name = models.CharField(max_length=255)
-    price = models.IntegerField()
-    discount = models.IntegerField(default=0)
-    stock = models.IntegerField(default=0)
-
-    class Type(models.TextChoices):
-        JEWELLERY = "JEWELLERY"
-        CLOTH = "CLOTH"
-
-    type = models.CharField(max_length=50, choices=Type.choices)
-    description = models.TextField()
-
-    def __str__(self):
-        return self.name
+# USER models ..............
 
 
 class User(AbstractBaseUser, PermissionsMixin):

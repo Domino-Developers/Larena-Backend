@@ -23,4 +23,4 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = "ecommerce.User"
+# AUTH_USER_MODEL = "ecommerce.User"
