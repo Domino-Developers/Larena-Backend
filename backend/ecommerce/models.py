@@ -32,6 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone = models.IntegerField(
         validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)]
     )
+    cart = models.ManyToManyField(Product, through="CartObj")
 
     USERNAME_FIELD = "email"
 
@@ -51,3 +52,9 @@ class Address(models.Model):
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
+
+
+class CartObj(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    qty = models.IntegerField(_("Quantity"), default=1)
