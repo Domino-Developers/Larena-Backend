@@ -1,0 +1,9 @@
+build:
+    docker:
+        web: Dockerfile
+release:
+    command:
+        - python backend/manage.py migrate
+    image: web
+run:
+    web: gunicorn backend.wsgi --chdir backend --log-file -
