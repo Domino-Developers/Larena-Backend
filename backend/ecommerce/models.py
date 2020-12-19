@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
 
+# PRODUCT models
+
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
@@ -21,6 +23,9 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# USER models
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -54,7 +59,34 @@ class Address(models.Model):
     country = models.CharField(max_length=255)
 
 
+# Order and cart orders
+
+
 class CartObj(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    qty = models.IntegerField(_("Quantity"), default=1)
+    qty = models.IntegerField(_("Quantity of product"), default=1)
+
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, through="OrderObj")
+    order_timestamp = models.DateTimeField(auto_now_add=True)
+
+    class DeliveryStatus(models.TextChoices):
+        OR = "OR", "ordered"
+        OFD = "OFD", "out_for_delivery"
+        DL = "DL", "delivered"
+
+    status = models.CharField(
+        max_length=3, choices=DeliveryStatus.choices, default=DeliveryStatus.OR
+    )
+
+
+class OrderObj(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    qty = models.IntegerField(_("Quantity of product"), default=1)
+
+    class Meta:
+        unique_together = ("order", "product")
