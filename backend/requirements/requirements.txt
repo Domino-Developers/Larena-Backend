@@ -8,15 +8,17 @@ aniso8601==7.0.0          # via graphene
 asgiref==3.3.1            # via django
 brotli==1.0.9             # via whitenoise
 dj-database-url==0.5.0    # via django-heroku
+django-graphql-jwt==0.3.1  # via -r requirements.in
 django-heroku==0.3.1      # via -r requirements.in
-django==3.1.4             # via -r requirements.in, django-heroku, graphene-django
-graphene-django==2.13.0   # via -r requirements.in
+django==3.1.4             # via -r requirements.in, django-graphql-jwt, django-heroku, graphene-django
+graphene-django==2.13.0   # via -r requirements.in, django-graphql-jwt
 graphene==2.1.8           # via -r requirements.in, graphene-django
-graphql-core==2.3.2       # via graphene, graphene-django, graphql-relay
+graphql-core==2.3.2       # via django-graphql-jwt, graphene, graphene-django, graphql-relay
 graphql-relay==2.0.1      # via graphene
 gunicorn==20.0.4          # via -r requirements.in
 promise==2.3              # via graphene-django, graphql-core, graphql-relay
 psycopg2==2.8.6           # via django-heroku
+pyjwt==1.7.1              # via django-graphql-jwt
 pytz==2020.4              # via django
 rx==1.6.1                 # via graphql-core
 singledispatch==3.4.0.3   # via graphene-django
