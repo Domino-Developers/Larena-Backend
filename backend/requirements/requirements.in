@@ -4,3 +4,4 @@ gunicorn
 django-heroku
 graphene
 graphene-django
+django-graphql-jwt
