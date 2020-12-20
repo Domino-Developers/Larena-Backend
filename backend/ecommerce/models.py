@@ -90,3 +90,13 @@ class OrderObj(models.Model):
 
     class Meta:
         unique_together = ("order", "product")
+
+
+# REVIEW model
+
+
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    text = models.CharField(max_length=255, blank=True)
