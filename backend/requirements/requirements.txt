@@ -4,15 +4,25 @@
 #
 #    pip-compile requirements.in
 #
+aniso8601==7.0.0          # via graphene
 asgiref==3.3.1            # via django
 brotli==1.0.9             # via whitenoise
 dj-database-url==0.5.0    # via django-heroku
 django-heroku==0.3.1      # via -r requirements.in
-django==3.1.4             # via -r requirements.in, django-heroku
+django==3.1.4             # via -r requirements.in, django-heroku, graphene-django
+graphene-django==2.13.0   # via -r requirements.in
+graphene==2.1.8           # via -r requirements.in, graphene-django
+graphql-core==2.3.2       # via graphene, graphene-django, graphql-relay
+graphql-relay==2.0.1      # via graphene
 gunicorn==20.0.4          # via -r requirements.in
+promise==2.3              # via graphene-django, graphql-core, graphql-relay
 psycopg2==2.8.6           # via django-heroku
 pytz==2020.4              # via django
+rx==1.6.1                 # via graphql-core
+singledispatch==3.4.0.3   # via graphene-django
+six==1.15.0               # via graphene, graphene-django, graphql-core, graphql-relay, promise, singledispatch
 sqlparse==0.4.1           # via django
+unidecode==1.1.2          # via graphene-django
 whitenoise[brotli]==5.2.0  # via -r requirements.in, django-heroku
 
 # The following packages are considered to be unsafe in a requirements file:

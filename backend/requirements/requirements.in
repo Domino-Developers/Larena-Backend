@@ -2,3 +2,5 @@ django
 whitenoise[brotli]
 gunicorn
 django-heroku
+graphene
+graphene-django
