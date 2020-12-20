@@ -14,11 +14,11 @@ class Product(models.Model):
     discount = models.IntegerField(default=0)
     stock = models.IntegerField(default=0)
 
-    class Type(models.TextChoices):
+    class Kind(models.TextChoices):
         JEWELLERY = "JEWELLERY"
         CLOTH = "CLOTH"
 
-    type = models.CharField(max_length=50, choices=Type.choices)
+    kind = models.CharField(max_length=50, choices=Kind.choices)
     description = models.TextField()
 
     def __str__(self):
@@ -97,6 +97,9 @@ class OrderObj(models.Model):
 
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     text = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = ("user", "product")
