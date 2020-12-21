@@ -17,6 +17,11 @@ class ReviewType(DjangoObjectType):
         model = Review
 
 
+class LikeType(DjangoObjectType):
+    class Meta:
+        model = Like
+
+
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
@@ -155,7 +160,7 @@ class AddReview(graphene.Mutation):
 
     @login_required
     def mutate(self, info, rating, productId, **kwargs):
-        text = kwargs.get('text', None)
+        text = kwargs.get("text", None)
         user = info.context.user
         review = Review(user=user, product_id=productId, rating=rating, text=text)
         review.save()
@@ -163,7 +168,40 @@ class AddReview(graphene.Mutation):
         return AddReview(id=review.id, rating=review.rating, text=review.text)
 
 
+class LikeReview(graphene.Mutation):
+    id = graphene.String()
+
+    class Arguments:
+        reviewId = graphene.String()
+
+    @login_required
+    def mutate(self, info, reviewId):
+        user = info.context.user
+        like = Like(user=user, review_id=reviewId)
+        like.save()
+
+        return LikeReview(id=like.id)
+
+
+class UnlikeReview(graphene.Mutation):
+    id = graphene.String()
+
+    class Arguments:
+        reviewId = graphene.String()
+
+    @login_required
+    def mutate(self, info, reviewId):
+        user = info.context.user
+        like = Like.objects.get(user=user, review_id=reviewId)
+        id = like.id
+        like.delete()
+
+        return UnlikeReview(id=id)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
     add_review = AddReview.Field()
+    like_review = LikeReview.Field()
+    unlike_review = UnlikeReview.Field()
