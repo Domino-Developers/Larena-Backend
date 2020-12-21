@@ -70,3 +70,32 @@ class Query(graphene.ObjectType):
             qs = qs[:first]
 
         return qs
+
+
+class CreateUser(graphene.Mutation):
+    id = graphene.String()
+    name = graphene.String()
+    email = graphene.String()
+    phone = graphene.Int()
+
+    class Arguments:
+        name = graphene.String()
+        email = graphene.String()
+        phone = graphene.Int()
+        password = graphene.String()
+
+    def mutate(self, info, name, email, phone, password):
+        user = User(name=name, email=email, phone=phone)
+        user.set_password = password
+        user.save()
+
+        return CreateUser(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            phone=user.phone,
+        )
+
+
+class Mutation(graphene.ObjectType):
+    create_user = CreateUser.Field()
