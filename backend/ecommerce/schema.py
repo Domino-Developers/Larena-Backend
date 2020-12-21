@@ -2,6 +2,7 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.db.models import Q
+from graphql import GraphQLError
 
 from .models import *
 
@@ -168,6 +169,25 @@ class AddReview(graphene.Mutation):
         return AddReview(id=review.id, rating=review.rating, text=review.text)
 
 
+class DeleteReview(graphene.Mutation):
+    id = graphene.String()
+
+    class Arguments:
+        reviewId = graphene.String()
+
+    @login_required
+    def mutate(self, info, reviewId):
+        user = info.context.user
+        review = Review.objects.get(pk=reviewId)
+
+        if review.user.id != user.id:
+            raise GraphQLError("You must be author of the review to delete it.")
+
+        review.delete()
+
+        return DeleteReview(id=reviewId)
+
+
 class LikeReview(graphene.Mutation):
     id = graphene.String()
 
@@ -203,5 +223,6 @@ class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
     add_review = AddReview.Field()
+    delete_review = DeleteReview.Field()
     like_review = LikeReview.Field()
     unlike_review = UnlikeReview.Field()
