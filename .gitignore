@@ -83,6 +83,7 @@ celerybeat-schedule
 
 # Environments
 .env
+e-commerce/
 .venv
 env/
 venv/
@@ -107,5 +108,3 @@ venv.bak/
 .vscode/
 
 report_unittest.xml
-
-e-commerce/

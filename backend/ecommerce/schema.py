@@ -73,7 +73,7 @@ class Query(graphene.ObjectType):
 
 
 class CreateUser(graphene.Mutation):
-    id = graphene.Int()
+    id = graphene.String()
     name = graphene.String()
     email = graphene.String()
     phone = graphene.Int()
