@@ -99,7 +99,7 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    text = models.CharField(max_length=255, blank=True)
+    text = models.CharField(max_length=255, null=True)
 
     class Meta:
         unique_together = ("user", "product")

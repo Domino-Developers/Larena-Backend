@@ -143,6 +143,27 @@ class CreateUser(graphene.Mutation):
         )
 
 
+class AddReview(graphene.Mutation):
+    id = graphene.String()
+    rating = graphene.Int()
+    text = graphene.String()
+
+    class Arguments:
+        rating = graphene.Int()
+        text = graphene.String()
+        productId = graphene.String()
+
+    @login_required
+    def mutate(self, info, rating, productId, **kwargs):
+        text = kwargs.get('text', None)
+        user = info.context.user
+        review = Review(user=user, product_id=productId, rating=rating, text=text)
+        review.save()
+
+        return AddReview(id=review.id, rating=review.rating, text=review.text)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
+    add_review = AddReview.Field()
