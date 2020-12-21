@@ -72,6 +72,52 @@ class Query(graphene.ObjectType):
         return qs
 
 
+class CreateAddress(graphene.Mutation):
+    name = graphene.String()
+    address1 = graphene.String()
+    address2 = graphene.String()
+    pincode = graphene.Int()
+    city = graphene.String()
+    state = graphene.String()
+    country = graphene.String()
+
+    class Arguments:
+        name = graphene.String()
+        address1 = graphene.String()
+        address2 = graphene.String()
+        pincode = graphene.Int()
+        city = graphene.String()
+        state = graphene.String()
+        country = graphene.String()
+
+    def mutate(self, info, name, address1, address2, pincode, city, state, country):
+        user = info.context.user
+        if user.is_anonymous:
+            raise GraphQLError("You must be logged in to update Address!")
+
+        address = Address(
+            user=user,
+            name=name,
+            address1=address1,
+            address2=address2,
+            pincode=pincode,
+            city=city,
+            state=state,
+            country=country,
+        )
+        address.save()
+
+        return CreateAddress(
+            name=address.name,
+            address1=address.address1,
+            address2=address.address2,
+            pincode=address.pincode,
+            city=address.city,
+            state=address.state,
+            country=address.country,
+        )
+
+
 class CreateUser(graphene.Mutation):
     id = graphene.String()
     name = graphene.String()
@@ -99,3 +145,4 @@ class CreateUser(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
+    create_address = CreateAddress.Field()
