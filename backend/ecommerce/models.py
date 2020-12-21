@@ -103,3 +103,11 @@ class Review(models.Model):
 
     class Meta:
         unique_together = ("user", "product")
+
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="likes")
+
+    class Meta:
+        unique_together = ("user", "review")
