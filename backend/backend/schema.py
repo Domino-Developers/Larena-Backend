@@ -8,7 +8,7 @@ class Query(ecommerce.schema.Query, graphene.ObjectType):
     pass
 
 
-class Mutation(graphene.ObjectType):
+class Mutation(ecommerce.schema.Mutation, graphene.ObjectType):
     # root mutations
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
