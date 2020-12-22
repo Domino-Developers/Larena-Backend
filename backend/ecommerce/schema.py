@@ -96,10 +96,9 @@ class CreateAddress(graphene.Mutation):
         state = graphene.String()
         country = graphene.String()
 
+    @login_required
     def mutate(self, info, name, address1, address2, pincode, city, state, country):
         user = info.context.user
-        if user.is_anonymous:
-            raise GraphQLError("You must be logged in to update Address!")
 
         address = Address(
             user=user,
@@ -124,6 +123,25 @@ class CreateAddress(graphene.Mutation):
         )
 
 
+class DeleteAddress(graphene.Mutation):
+    id = graphene.String()
+
+    class Arguments:
+        addressId = graphene.String()
+
+    @login_required
+    def mutate(self, info, addressId):
+        user = info.context.user
+        address = Address.objects.get(pk=addressId)
+
+        if address.user.id != user.id:
+            raise GraphQLError("You must the owner of that address to remove it!")
+
+        address.delete()
+
+        return DeleteAddress(id=addressId)
+
+
 class CreateUser(graphene.Mutation):
     id = graphene.String()
     name = graphene.String()
@@ -138,7 +156,7 @@ class CreateUser(graphene.Mutation):
 
     def mutate(self, info, name, email, phone, password):
         user = User(name=name, email=email, phone=phone)
-        user.set_password = password
+        user.set_password(password)
         user.save()
 
         return CreateUser(
@@ -222,6 +240,7 @@ class UnlikeReview(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
+    delete_address = DeleteAddress.Field()
     add_review = AddReview.Field()
     delete_review = DeleteReview.Field()
     like_review = LikeReview.Field()
