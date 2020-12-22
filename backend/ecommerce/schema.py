@@ -1,8 +1,7 @@
+from django.db.models import Q
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
-from django.db.models import Q
-from graphql import GraphQLError
 
 from .models import *
 
@@ -136,7 +135,7 @@ class DeleteAddress(graphene.Mutation):
         address = Address.objects.get(pk=addressId)
 
         if address.user.id != user.id:
-            raise GraphQLError("You must the owner of that address to remove it!")
+            raise Exception("You must the owner of that address to remove it!")
 
         address.delete()
 
@@ -200,7 +199,7 @@ class DeleteReview(graphene.Mutation):
         review = Review.objects.get(pk=reviewId)
 
         if review.user.id != user.id:
-            raise GraphQLError("You must be author of the review to delete it.")
+            raise Exception("You must be author of the review to delete it.")
 
         review.delete()
 
@@ -256,6 +255,25 @@ class UpdateSelf(graphene.Mutation):
         return UpdateSelf(user=user)
 
 
+class UpdatePassword(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        old_pass = graphene.String()
+        new_pass = graphene.String()
+
+    @login_required
+    def mutate(self, info, old_pass, new_pass):
+        user = info.context.user
+
+        if not user.check_password(old_pass):
+            raise Exception("Old password not correct")
+        else:
+            user.set_password(new_pass)
+            user.save()
+            return UpdatePassword(user=user)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
@@ -265,3 +283,4 @@ class Mutation(graphene.ObjectType):
     like_review = LikeReview.Field()
     unlike_review = UnlikeReview.Field()
     update_me = UpdateSelf.Field()
+    update_password = UpdatePassword.Field()
