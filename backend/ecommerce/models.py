@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    MaxLengthValidator,
+    MinLengthValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
 from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
@@ -39,8 +44,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(
         default=False, help_text=_("Designates if a user can log into this admin site")
     )
-    phone = models.IntegerField(
-        validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)]
+    phone = models.CharField(
+        max_length=10, validators=[MinLengthValidator(10), MaxLengthValidator(10)]
     )
     cart = models.ManyToManyField(Product, through="CartObj")
 

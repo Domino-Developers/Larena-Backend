@@ -1,8 +1,7 @@
+from django.db.models import Q
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
-from django.db.models import Q
-from graphql import GraphQLError
 
 from .models import *
 
@@ -31,6 +30,7 @@ class ProductType(DjangoObjectType):
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+        exclude = ("password",)  # dont allow password
 
     cart = graphene.List(CartType)
 
@@ -135,7 +135,7 @@ class DeleteAddress(graphene.Mutation):
         address = Address.objects.get(pk=addressId)
 
         if address.user.id != user.id:
-            raise GraphQLError("You must the owner of that address to remove it!")
+            raise Exception("You must the owner of that address to remove it!")
 
         address.delete()
 
@@ -146,12 +146,12 @@ class CreateUser(graphene.Mutation):
     id = graphene.String()
     name = graphene.String()
     email = graphene.String()
-    phone = graphene.Int()
+    phone = graphene.String()
 
     class Arguments:
         name = graphene.String()
         email = graphene.String()
-        phone = graphene.Int()
+        phone = graphene.String()
         password = graphene.String()
 
     def mutate(self, info, name, email, phone, password):
@@ -199,7 +199,7 @@ class DeleteReview(graphene.Mutation):
         review = Review.objects.get(pk=reviewId)
 
         if review.user.id != user.id:
-            raise GraphQLError("You must be author of the review to delete it.")
+            raise Exception("You must be author of the review to delete it.")
 
         review.delete()
 
@@ -237,6 +237,43 @@ class UnlikeReview(graphene.Mutation):
         return UnlikeReview(id=id)
 
 
+class UpdateSelf(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        phone = graphene.String()
+        name = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        if "phone" in kwargs.keys():
+            user.phone = kwargs.get("phone")
+        if "name" in kwargs.keys():
+            user.name = kwargs.get("name")
+        user.save()
+        return UpdateSelf(user=user)
+
+
+class UpdatePassword(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        old_pass = graphene.String()
+        new_pass = graphene.String()
+
+    @login_required
+    def mutate(self, info, old_pass, new_pass):
+        user = info.context.user
+
+        if not user.check_password(old_pass):
+            raise Exception("Old password not correct")
+        else:
+            user.set_password(new_pass)
+            user.save()
+            return UpdatePassword(user=user)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
@@ -245,3 +282,5 @@ class Mutation(graphene.ObjectType):
     delete_review = DeleteReview.Field()
     like_review = LikeReview.Field()
     unlike_review = UnlikeReview.Field()
+    update_me = UpdateSelf.Field()
+    update_password = UpdatePassword.Field()
