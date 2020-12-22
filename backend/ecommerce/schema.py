@@ -31,6 +31,7 @@ class ProductType(DjangoObjectType):
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+        exclude = ("password",)  # dont allow password
 
     cart = graphene.List(CartType)
 
@@ -146,12 +147,12 @@ class CreateUser(graphene.Mutation):
     id = graphene.String()
     name = graphene.String()
     email = graphene.String()
-    phone = graphene.Int()
+    phone = graphene.String()
 
     class Arguments:
         name = graphene.String()
         email = graphene.String()
-        phone = graphene.Int()
+        phone = graphene.String()
         password = graphene.String()
 
     def mutate(self, info, name, email, phone, password):
@@ -237,6 +238,24 @@ class UnlikeReview(graphene.Mutation):
         return UnlikeReview(id=id)
 
 
+class UpdateSelf(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        phone = graphene.String()
+        name = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        if "phone" in kwargs.keys():
+            user.phone = kwargs.get("phone")
+        if "name" in kwargs.keys():
+            user.name = kwargs.get("name")
+        user.save()
+        return UpdateSelf(user=user)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
@@ -245,3 +264,4 @@ class Mutation(graphene.ObjectType):
     delete_review = DeleteReview.Field()
     like_review = LikeReview.Field()
     unlike_review = UnlikeReview.Field()
+    update_me = UpdateSelf.Field()
