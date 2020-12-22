@@ -79,8 +79,8 @@ class CartObj(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    products = models.ManyToManyField(Product, through="OrderObj")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    product_objects = models.ManyToManyField(Product, through="OrderObj")
     order_timestamp = models.DateTimeField(auto_now_add=True)
 
     class DeliveryStatus(models.TextChoices):
