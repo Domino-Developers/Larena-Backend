@@ -27,6 +27,27 @@ class ProductType(DjangoObjectType):
         model = Product
 
 
+class ProductOrderInputType(graphene.InputObjectType):
+    product_id = graphene.Int(required=True)
+    qty = graphene.Int(required=True)
+
+
+class OrderObjType(DjangoObjectType):
+    class Meta:
+        model = OrderObj
+        exclude = ("order",)
+
+
+class OrderType(DjangoObjectType):
+    class Meta:
+        model = Order
+
+    product_objects = graphene.List(OrderObjType)
+
+    def resolve_product_objects(parent, info):
+        return OrderObj.objects.filter(order=parent)
+
+
 class UserType(DjangoObjectType):
     class Meta:
         model = User
@@ -35,8 +56,7 @@ class UserType(DjangoObjectType):
     cart = graphene.List(CartType)
 
     def resolve_cart(parent, info):
-        result = CartObj.objects.filter(user=parent)
-        return result
+        return CartObj.objects.filter(user=parent)
 
 
 class Query(graphene.ObjectType):
@@ -274,6 +294,22 @@ class UpdatePassword(graphene.Mutation):
             return UpdatePassword(user=user)
 
 
+class PlaceOrder(graphene.Mutation):
+    order = graphene.Field(OrderType)
+
+    class Arguments:
+        product_objects = graphene.List(ProductOrderInputType)
+
+    @login_required
+    def mutate(self, info, product_objects):
+        order = Order.objects.create(user=info.context.user)
+        for product_obj in product_objects:
+            order.product_objects.add(
+                product_obj.product_id, through_defaults={"qty": product_obj.qty}
+            )
+        return PlaceOrder(order=order)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
@@ -284,3 +320,4 @@ class Mutation(graphene.ObjectType):
     unlike_review = UnlikeReview.Field()
     update_me = UpdateSelf.Field()
     update_password = UpdatePassword.Field()
+    place_order = PlaceOrder.Field()
