@@ -20,8 +20,8 @@ class Product(models.Model):
     stock = models.IntegerField(default=0)
 
     class Kind(models.TextChoices):
-        JEWELLERY = "JEWELLERY"
-        CLOTH = "CLOTH"
+        Jewellery = "Jewellery"
+        Cloth = "Cloth"
 
     kind = models.CharField(max_length=50, choices=Kind.choices)
     description = models.TextField()
