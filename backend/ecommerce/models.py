@@ -31,7 +31,7 @@ class Product(models.Model):
 
 
 class Photo(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='photos')
     url = models.CharField(max_length=255)
 
 

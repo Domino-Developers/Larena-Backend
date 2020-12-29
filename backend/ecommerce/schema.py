@@ -26,6 +26,11 @@ class ProductType(DjangoObjectType):
         model = Product
 
 
+class PhotoType(DjangoObjectType):
+    class Meta:
+        model = Photo
+
+
 class ProductOrderInputType(graphene.InputObjectType):
     product_id = graphene.String(required=True)
     qty = graphene.Int(required=True)
