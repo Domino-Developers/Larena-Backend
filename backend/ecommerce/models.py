@@ -58,7 +58,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(_("Address name"), max_length=255)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=10)
     address1 = models.CharField(_("Address Line 1"), max_length=255)
     address2 = models.CharField(_("Address Line 2"), max_length=255)
     pincode = models.IntegerField(
@@ -82,6 +83,14 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     product_objects = models.ManyToManyField(Product, through="OrderObj")
     order_timestamp = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=10)
+    address1 = models.CharField(max_length=255)
+    address2 = models.CharField(max_length=255)
+    pincode = models.IntegerField()
+    city = models.CharField(max_length=255)
+    state = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
 
     class DeliveryStatus(models.TextChoices):
         OR = "OR", "ordered"
@@ -97,6 +106,7 @@ class OrderObj(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     qty = models.IntegerField(_("Quantity of product"), default=1)
+    price = models.IntegerField()
 
     class Meta:
         unique_together = ("order", "product")
