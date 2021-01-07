@@ -314,45 +314,28 @@ class PlaceOrder(graphene.Mutation):
         return PlaceOrder(order=order)
 
 
-class AddToCart(graphene.Mutation):
+class SetCart(graphene.Mutation):
     cart = graphene.List(CartType)
 
     class Arguments:
-        cart_obj = ProductOrderInputType(required=True)
+        cart_obj = ProductOrderInputType()
 
     @login_required
     def mutate(self, info, cart_obj):
         user = info.context.user
-        user.cart.add(cart_obj.product_id, through_defaults={"qty": cart_obj.qty})
-        return AddToCart(cart=CartObj.objects.filter(user=user))
 
+        try:
+            _cart_obj = CartObj.objects.get(user=user, product_id=cart_obj.product_id)
+            if cart_obj.qty > 0:
+                _cart_obj.qty = cart_obj.qty
+                _cart_obj.save()
+            else:
+                user.cart.remove(cart_obj.product_id)
+        except CartObj.DoesNotExist:
+            if cart_obj.qty > 0:
+                user.cart.add(cart_obj.product_id, through_defaults={"qty": cart_obj.qty})
 
-class EditCartObj(graphene.Mutation):
-    cart = graphene.List(CartType)
-
-    class Arguments:
-        cart_obj = ProductOrderInputType(required=True)
-
-    @login_required
-    def mutate(self, info, cart_obj):
-        user = info.context.user
-        _cart_obj = CartObj.objects.get(user=user, product_id=cart_obj.product_id)
-        _cart_obj.qty = cart_obj.qty
-        _cart_obj.save()
-        return EditCartObj(cart=CartObj.objects.filter(user=user))
-
-
-class DeleteCartObj(graphene.Mutation):
-    cart = graphene.List(CartType)
-
-    class Arguments:
-        product_id = graphene.String()
-
-    @login_required
-    def mutate(self, info, product_id):
-        user = info.context.user
-        user.cart.remove(product_id)
-        return DeleteCartObj(cart=CartObj.objects.filter(user=user))
+        return SetCart(cart=CartObj.objects.filter(user=user))
 
 
 class Mutation(graphene.ObjectType):
@@ -366,6 +349,4 @@ class Mutation(graphene.ObjectType):
     update_me = UpdateSelf.Field()
     update_password = UpdatePassword.Field()
     place_order = PlaceOrder.Field()
-    add_to_cart = AddToCart.Field()
-    edit_cart_obj = EditCartObj.Field()
-    delete_cart_obj = DeleteCartObj.Field()
+    set_cart = SetCart.Field()
