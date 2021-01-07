@@ -307,7 +307,16 @@ class PlaceOrder(graphene.Mutation):
     @login_required
     def mutate(self, info, product_objects):
         order = Order.objects.create(user=info.context.user)
+
         for product_obj in product_objects:
+            product = Product.objects.get(pk=product_obj.product_id)
+
+            if product.stock < product_obj.qty:
+                raise Exception("Stock Error")
+
+            product.stock -= product_obj.qty
+            product.save()
+
             order.product_objects.add(
                 product_obj.product_id, through_defaults={"qty": product_obj.qty}
             )
