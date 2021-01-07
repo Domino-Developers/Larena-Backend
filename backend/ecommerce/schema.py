@@ -75,9 +75,23 @@ class Query(graphene.ObjectType):
     )
     product = graphene.Field(ProductType, id=graphene.String())
 
+    orders = graphene.List(OrderType)
+    order = graphene.Field(OrderType, id=graphene.String())
+
     @login_required
     def resolve_me(self, info):
         return info.context.user
+    
+    @login_required
+    def resolve_orders(self, info):
+        return Order.objects.filter(user=info.context.user)
+    
+    @login_required
+    def resolve_order(self, info, id):
+        product = Order.objects.get(pk=id)
+        if product.user != info.context.user:
+            raise Exception("Not the owner of the order")
+        return product
 
     def resolve_product(self, info, id, **kwargs):
         return Product.objects.get(pk=id)
