@@ -15,10 +15,25 @@ class ReviewType(DjangoObjectType):
     class Meta:
         model = Review
 
+    likes_count = graphene.Int()
+    is_liked = graphene.Boolean()
+
+    def resolve_likes_count(parent, info):
+        return Like.objects.filter(review=parent).count()
+
+    @login_required
+    def resolve_is_liked(parent, info):
+        return Like.objects.filter(review=parent, user=info.context.user).count()
+
 
 class LikeType(DjangoObjectType):
     class Meta:
         model = Like
+
+
+class AddressType(DjangoObjectType):
+    class Meta:
+        model = Address
 
 
 class ProductType(DjangoObjectType):
@@ -81,11 +96,11 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_me(self, info):
         return info.context.user
-    
+
     @login_required
     def resolve_orders(self, info):
         return Order.objects.filter(user=info.context.user)
-    
+
     @login_required
     def resolve_order(self, info, id):
         product = Order.objects.get(pk=id)
