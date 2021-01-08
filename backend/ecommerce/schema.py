@@ -2,6 +2,7 @@ from django.db.models import Q
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
+import math
 
 from .models import *
 
@@ -81,11 +82,11 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_me(self, info):
         return info.context.user
-    
+
     @login_required
     def resolve_orders(self, info):
         return Order.objects.filter(user=info.context.user)
-    
+
     @login_required
     def resolve_order(self, info, id):
         product = Order.objects.get(pk=id)
@@ -118,6 +119,7 @@ class Query(graphene.ObjectType):
 
 class CreateAddress(graphene.Mutation):
     name = graphene.String()
+    phone = graphene.String()
     address1 = graphene.String()
     address2 = graphene.String()
     pincode = graphene.Int()
@@ -127,6 +129,7 @@ class CreateAddress(graphene.Mutation):
 
     class Arguments:
         name = graphene.String()
+        phone = graphene.String()
         address1 = graphene.String()
         address2 = graphene.String()
         pincode = graphene.Int()
@@ -135,12 +138,15 @@ class CreateAddress(graphene.Mutation):
         country = graphene.String()
 
     @login_required
-    def mutate(self, info, name, address1, address2, pincode, city, state, country):
+    def mutate(
+        self, info, name, phone, address1, address2, pincode, city, state, country
+    ):
         user = info.context.user
 
         address = Address(
             user=user,
             name=name,
+            phone=phone,
             address1=address1,
             address2=address2,
             pincode=pincode,
@@ -152,6 +158,7 @@ class CreateAddress(graphene.Mutation):
 
         return CreateAddress(
             name=address.name,
+            phone=address.phone,
             address1=address.address1,
             address2=address.address2,
             pincode=address.pincode,
@@ -317,10 +324,22 @@ class PlaceOrder(graphene.Mutation):
 
     class Arguments:
         product_objects = graphene.List(ProductOrderInputType)
+        address_id = graphene.String()
 
     @login_required
-    def mutate(self, info, product_objects):
-        order = Order.objects.create(user=info.context.user)
+    def mutate(self, info, address_id, product_objects):
+        address = Address.objects.get(pk=address_id)
+        order = Order.objects.create(
+            user=info.context.user,
+            name=address.name,
+            phone=address.phone,
+            address1=address.address1,
+            address2=address.address2,
+            pincode=address.pincode,
+            city=address.city,
+            state=address.state,
+            country=address.country,
+        )
 
         for product_obj in product_objects:
             product = Product.objects.get(pk=product_obj.product_id)
@@ -332,7 +351,13 @@ class PlaceOrder(graphene.Mutation):
             product.save()
 
             order.product_objects.add(
-                product_obj.product_id, through_defaults={"qty": product_obj.qty}
+                product_obj.product_id,
+                through_defaults={
+                    "qty": product_obj.qty,
+                    "price": math.ceil(
+                        product.price - (product.discount * product.price) / 100
+                    ),
+                },
             )
         return PlaceOrder(order=order)
 
