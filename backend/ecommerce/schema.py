@@ -334,15 +334,14 @@ class UpdatePassword(graphene.Mutation):
             return UpdatePassword(user=user)
 
 
-class PlaceOrder(graphene.Mutation):
+class OrderCart(graphene.Mutation):
     order = graphene.Field(OrderType)
 
     class Arguments:
-        product_objects = graphene.List(ProductOrderInputType)
         address_id = graphene.String()
 
     @login_required
-    def mutate(self, info, address_id, product_objects):
+    def mutate(self, info, address_id):
         address = Address.objects.get(pk=address_id)
         order = Order.objects.create(
             user=info.context.user,
@@ -356,25 +355,30 @@ class PlaceOrder(graphene.Mutation):
             country=address.country,
         )
 
-        for product_obj in product_objects:
-            product = Product.objects.get(pk=product_obj.product_id)
+        cart = CartObj.objects.filter(user=info.context.user)
 
-            if product.stock < product_obj.qty:
+        for cart_obj in cart:
+            product = cart_obj.product
+
+            if product.stock < cart_obj.qty:
                 raise Exception("Stock Error")
 
-            product.stock -= product_obj.qty
+            product.stock -= cart_obj.qty
             product.save()
 
             order.product_objects.add(
-                product_obj.product_id,
+                product.id,
                 through_defaults={
-                    "qty": product_obj.qty,
+                    "qty": cart_obj.qty,
                     "price": math.ceil(
                         product.price - (product.discount * product.price) / 100
                     ),
                 },
             )
-        return PlaceOrder(order=order)
+
+            cart_obj.delete()
+        
+        return OrderCart(order=order)
 
 
 class SetCart(graphene.Mutation):
@@ -411,5 +415,5 @@ class Mutation(graphene.ObjectType):
     unlike_review = UnlikeReview.Field()
     update_me = UpdateSelf.Field()
     update_password = UpdatePassword.Field()
-    place_order = PlaceOrder.Field()
+    order_cart = OrderCart.Field()
     set_cart = SetCart.Field()
