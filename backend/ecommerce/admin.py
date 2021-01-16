@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin import TabularInline
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User, Address, Product, Photo, Review
+from .models import User, Address, Product, Photo, Review, Order, OrderObj
 
 
 class AddressInline(TabularInline):
@@ -45,4 +45,6 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(Address)
 admin.site.register(Product)
 admin.site.register(Photo)
+admin.site.register(OrderObj)
+admin.site.register(Order)
 admin.site.register(Review)
