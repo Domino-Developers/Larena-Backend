@@ -131,3 +131,8 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ("user", "review")
+
+
+class Appointment(models.Model):
+    timestamp = models.DateTimeField()
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
