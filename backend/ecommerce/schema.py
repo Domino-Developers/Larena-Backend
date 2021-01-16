@@ -1,3 +1,4 @@
+from itertools import product
 from django.db.models import Q
 import graphene
 from graphene_django import DjangoObjectType
@@ -386,23 +387,72 @@ class OrderCart(graphene.Mutation):
         return OrderCart(order=order)
 
 
+class OrderProduct(graphene.Mutation):
+    order = graphene.Field(OrderType)
+
+    class Arguments:
+        product_obj = ProductOrderInputType()
+        address_id = graphene.String()
+
+    @login_required
+    def mutate(self, info, product_obj, address_id):
+        address = Address.objects.get(pk=address_id)
+        order = Order.objects.create(
+            user=info.context.user,
+            name=address.name,
+            phone=address.phone,
+            address1=address.address1,
+            address2=address.address2,
+            pincode=address.pincode,
+            city=address.city,
+            state=address.state,
+            country=address.country,
+        )
+
+        product = Product.objects.get(pk=product_obj.product_id)
+        if product.stock < product_obj.qty:
+            raise Exception("Stock Error")
+
+        product.stock -= product_obj.qty
+        product.save()
+
+        order.product_objects.add(
+            product.id,
+            through_defaults={
+                "qty": product_obj.qty,
+                "price": math.ceil(
+                    product.price - (product.discount * product.price) / 100
+                ),
+            },
+        )
+
+        return OrderProduct(order=order)
+
+    order = graphene.Field(OrderType)
+
+
 class SetCart(graphene.Mutation):
     cart = graphene.List(CartType)
 
     class Arguments:
         cart_obj = ProductOrderInputType()
+        add = graphene.Boolean()
 
     @login_required
-    def mutate(self, info, cart_obj):
+    def mutate(self, info, cart_obj, **kwargs):
         user = info.context.user
-
+        add = kwargs.get("add", False)
         try:
             _cart_obj = CartObj.objects.get(user=user, product_id=cart_obj.product_id)
-            if cart_obj.qty > 0:
-                _cart_obj.qty = cart_obj.qty
+            if add:
+                _cart_obj.qty += cart_obj.qty
                 _cart_obj.save()
             else:
-                user.cart.remove(cart_obj.product_id)
+                if cart_obj.qty > 0:
+                    _cart_obj.qty = cart_obj.qty
+                    _cart_obj.save()
+                else:
+                    user.cart.remove(cart_obj.product_id)
         except CartObj.DoesNotExist:
             if cart_obj.qty > 0:
                 user.cart.add(cart_obj.product_id, through_defaults={"qty": cart_obj.qty})
@@ -443,3 +493,4 @@ class Mutation(graphene.ObjectType):
     order_cart = OrderCart.Field()
     set_cart = SetCart.Field()
     book_appointment = BookAppointment.Field()
+    order_product = OrderProduct.Field()
