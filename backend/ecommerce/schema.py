@@ -37,6 +37,11 @@ class AddressType(DjangoObjectType):
         model = Address
 
 
+class AppointmentType(DjangoObjectType):
+    class Meta:
+        model = Appointment
+
+
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
@@ -377,7 +382,7 @@ class OrderCart(graphene.Mutation):
             )
 
             cart_obj.delete()
-        
+
         return OrderCart(order=order)
 
 
@@ -405,6 +410,26 @@ class SetCart(graphene.Mutation):
         return SetCart(cart=CartObj.objects.filter(user=user))
 
 
+class BookAppointment(graphene.Mutation):
+    appointment = graphene.Field(AppointmentType)
+
+    class Arguments:
+        timestamp = graphene.DateTime()
+
+    @login_required
+    def mutate(self, info, timestamp):
+        _appoint = Appointment.objects.filter(timestamp__startswith=timestamp.date())
+
+        if len(_appoint) > 0:
+            raise Exception("No slot on that day!")
+
+        new_appoint = Appointment.objects.create(
+            user=info.context.user, timestamp=timestamp
+        )
+
+        return BookAppointment(appointment=new_appoint)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     create_address = CreateAddress.Field()
@@ -417,3 +442,4 @@ class Mutation(graphene.ObjectType):
     update_password = UpdatePassword.Field()
     order_cart = OrderCart.Field()
     set_cart = SetCart.Field()
+    book_appointment = BookAppointment.Field()
