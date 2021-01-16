@@ -1,4 +1,5 @@
-from itertools import product
+import datetime
+
 from django.db.models import Q
 import graphene
 from graphene_django import DjangoObjectType
@@ -99,6 +100,7 @@ class Query(graphene.ObjectType):
 
     orders = graphene.List(OrderType)
     order = graphene.Field(OrderType, id=graphene.String())
+    booked_dates = graphene.List(graphene.DateTime)
 
     @login_required
     def resolve_me(self, info):
@@ -114,6 +116,13 @@ class Query(graphene.ObjectType):
         if product.user != info.context.user:
             raise Exception("Not the owner of the order")
         return product
+
+    def resolve_booked_dates(self, info):
+        appointments = Appointment.objects.filter(timestamp__gt=datetime.datetime.now())
+        print(appointments)
+        booked_dates = [appointment.timestamp for appointment in appointments]
+        print(booked_dates)
+        return booked_dates
 
     def resolve_product(self, info, id, **kwargs):
         return Product.objects.get(pk=id)
