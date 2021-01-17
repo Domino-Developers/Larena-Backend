@@ -43,5 +43,5 @@ RUN DJANGO_SETTINGS_MODULE=backend.settings.production \
 
 EXPOSE $PORT
 
-CMD [ "gunicorn", "backend.wsgi" , '--chdir', 'backend', '--log-file', '-']
+CMD [ "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "backend.wsgi" , '--chdir', 'backend', '--log-file', '-']
 

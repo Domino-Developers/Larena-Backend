@@ -44,6 +44,8 @@ services:
             DB_CORE: $DB_CORE
             DB_HOST: $DB_HOST
             DB_PORT: $DB_PORT
+            GOOGLE_EMAIL: $GOOGLE_EMAIL
+            GOOGLE_PASSWORD: $GOOGLE_PASSWORD
         depends_on: 
             - db
         networks: 
