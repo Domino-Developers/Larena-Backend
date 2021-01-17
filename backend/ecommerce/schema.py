@@ -1,12 +1,15 @@
 import datetime
 
 from django.db.models import Q
+from django.core.mail import send_mail, mail_admins
 import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 import math
+import pytz
 
 from .models import *
+from .utils import run_async
 
 
 class CartType(DjangoObjectType):
@@ -118,10 +121,10 @@ class Query(graphene.ObjectType):
         return product
 
     def resolve_booked_dates(self, info):
-        appointments = Appointment.objects.filter(timestamp__gt=datetime.datetime.now())
-        print(appointments)
+        appointments = Appointment.objects.filter(
+            timestamp__gt=datetime.datetime.now().astimezone()
+        )
         booked_dates = [appointment.timestamp for appointment in appointments]
-        print(booked_dates)
         return booked_dates
 
     def resolve_product(self, info, id, **kwargs):
@@ -358,8 +361,9 @@ class OrderCart(graphene.Mutation):
     @login_required
     def mutate(self, info, address_id):
         address = Address.objects.get(pk=address_id)
+        user = info.context.user
         order = Order.objects.create(
-            user=info.context.user,
+            user=user,
             name=address.name,
             phone=address.phone,
             address1=address.address1,
@@ -369,7 +373,6 @@ class OrderCart(graphene.Mutation):
             state=address.state,
             country=address.country,
         )
-
         cart = CartObj.objects.filter(user=info.context.user)
 
         for cart_obj in cart:
@@ -393,6 +396,24 @@ class OrderCart(graphene.Mutation):
 
             cart_obj.delete()
 
+        run_async(
+            send_mail,
+            [
+                f"Order Confirmed Id: {order.id}",
+                f"Dear {user.name},\n\n Your order is confirmed with order id: {order.id}. Please go to your orders section in app to see the order details",
+                "Larena Team",
+                [user.email],
+            ],
+        )
+
+        run_async(
+            mail_admins,
+            [
+                f"Order Confirmed Id: {order.id}",
+                f"A order has been placed with order id : {order.id}",
+            ],
+        )
+
         return OrderCart(order=order)
 
 
@@ -406,8 +427,9 @@ class OrderProduct(graphene.Mutation):
     @login_required
     def mutate(self, info, product_obj, address_id):
         address = Address.objects.get(pk=address_id)
+        user = info.context.user
         order = Order.objects.create(
-            user=info.context.user,
+            user=user,
             name=address.name,
             phone=address.phone,
             address1=address.address1,
@@ -435,9 +457,25 @@ class OrderProduct(graphene.Mutation):
             },
         )
 
-        return OrderProduct(order=order)
+        run_async(
+            send_mail,
+            [
+                f"Order Confirmed Id: {order.id}",
+                f"Dear {user.name},\n\n Your order is confirmed with order id: {order.id}. Please go to your orders section in app to see the order details",
+                "Larena Team",
+                [user.email],
+            ],
+        )
 
-    order = graphene.Field(OrderType)
+        run_async(
+            mail_admins,
+            [
+                f"Order Confirmed Id: {order.id}",
+                f"A order has been placed with order id : {order.id}",
+            ],
+        )
+
+        return OrderProduct(order=order)
 
 
 class SetCart(graphene.Mutation):
@@ -481,9 +519,38 @@ class BookAppointment(graphene.Mutation):
 
         if len(_appoint) > 0:
             raise Exception("No slot on that day!")
+        user = info.context.user
+        new_appoint = Appointment.objects.create(user=user, timestamp=timestamp)
 
-        new_appoint = Appointment.objects.create(
-            user=info.context.user, timestamp=timestamp
+        _time: datetime.datetime = new_appoint.timestamp.astimezone(
+            pytz.timezone("Asia/Kolkata")
+        )
+
+        formatted_time = _time.strftime("%-I:%M on %A, %-d{} %B")
+        if _time.day == 1:
+            formatted_time = formatted_time.format("st")
+        elif _time.day == 2:
+            formatted_time = formatted_time.format("nd")
+        elif _time.day == 3:
+            formatted_time = formatted_time.format("rd")
+        else:
+            formatted_time = formatted_time.format("th")
+        run_async(
+            send_mail,
+            [
+                "Appointment Confirmed",
+                f"Dear {user.name},\n\tThank you for booking appointment.\n\tYour appointment is at {formatted_time}.\n\nThanks,\n Larena team",
+                "Larena Team",
+                [user.email],
+            ],
+        )
+
+        run_async(
+            mail_admins,
+            [
+                "Appointment Confirmed",
+                f"New appoitment booked by {user.name} Phn: {user.phone} at {formatted_time}",
+            ],
         )
 
         return BookAppointment(appointment=new_appoint)
