@@ -58,6 +58,16 @@ class ProductOrderInputType(graphene.InputObjectType):
     qty = graphene.Int(required=True)
 
 
+class AddressInputType(graphene.InputObjectType):
+    name = graphene.String(required=True)
+    phone = graphene.String(required=True)
+    address1 = graphene.String(required=True)
+    address2 = graphene.String(required=True)
+    pincode = graphene.Int(required=True)
+    city = graphene.String(required=True)
+    state = graphene.String(required=True)
+
+
 class OrderObjType(DjangoObjectType):
     class Meta:
         model = OrderObj
@@ -309,6 +319,7 @@ class UpdateSelf(graphene.Mutation):
     class Arguments:
         phone = graphene.String()
         name = graphene.String()
+        address = AddressInputType()
 
     @login_required
     def mutate(self, info, **kwargs):
@@ -317,6 +328,21 @@ class UpdateSelf(graphene.Mutation):
             user.phone = kwargs.get("phone")
         if "name" in kwargs.keys():
             user.name = kwargs.get("name")
+        # for single address
+        if "address" in kwargs.keys():
+            address = ""
+            try:
+                address = Address.objects.get(user=user)
+            except Address.DoesNotExist:
+                address = Address(user=user)
+            address.name = kwargs.get("address").name
+            address.phone = kwargs.get("address").phone
+            address.address1 = kwargs.get("address").address1
+            address.address2 = kwargs.get("address").address2
+            address.pincode = kwargs.get("address").pincode
+            address.city = kwargs.get("address").city
+            address.state = kwargs.get("address").state
+            address.save()
         user.save()
         return UpdateSelf(user=user)
 
